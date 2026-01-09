@@ -28,10 +28,24 @@ services:
     ports:
       - "8000:8000"
     environment:
-      + DATABASE_URL: postgresql://postgres:postgres@db:5432/ecommerce
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/ecommerce
+      REDIS_URL: redis://redis:6379/0
     depends_on:
       - db
       - redis
+
+  worker:
+    build: .
+    container_name: ecommerce-worker
+    command: celery -A app.celery_app worker --loglevel=info
+    volumes:
+      - .:/app
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/ecommerce
+    depends_on:
+      - redis
+      - db
 
 volumes:
   postgres_data:      
